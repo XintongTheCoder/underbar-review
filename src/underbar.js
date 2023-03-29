@@ -6,7 +6,7 @@
   // Returns whatever value is passed as the argument. This function doesn't
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
-  _.identity = function (val) {
+  _.identity = (val) => {
     return val;
   };
 
@@ -189,7 +189,7 @@
     // terms of reduce(). Here's a freebie to demonstrate!
     return _.reduce(
       collection,
-      function (wasFound, item) {
+      (wasFound, item) => {
         if (wasFound) {
           return true;
         }
@@ -320,9 +320,8 @@
   // The arguments for the original function are passed after the wait
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
-  _.delay = function (func, wait) {
-    var args = Array.prototype.slice.call(arguments).slice(2);
-    setTimeout(function () {
+  _.delay = (func, wait, ...args) => {
+    setTimeout(() => {
       func.apply(this, args);
     }, wait);
   };
@@ -343,9 +342,9 @@
 
   // union find
 
-  _.shuffle = function (array) {
+  _.shuffle = (array) => {
     var copy = array.slice();
-    _.each(copy, function (value, key, copy) {
+    _.each(copy, (value, key, copy) => {
       var randomIndex =
         Math.floor(Math.random() * (length - (key + 1))) + key + 1;
       var temp = copy[randomIndex];
@@ -366,7 +365,7 @@
 
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
-  _.invoke = function (collection, functionOrKey, args) {
+  _.invoke = (collection, functionOrKey, args) => {
     var res = [];
     _.each(collection, (value, key, collection) => {
       if (typeof functionOrKey !== 'string') {
@@ -382,7 +381,7 @@
   // If iterator is a string, sort objects by that property with the name
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
-  _.sortBy = function (collection, iterator) {
+  _.sortBy = (collection, iterator) => {
     if (typeof iterator !== 'string') {
       collection.sort((a, b) => {
         return iterator(a) - iterator(b);
@@ -400,26 +399,93 @@
   //
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
-  _.zip = function () {};
+  _.zip = (...args) => {
+    var longest = _.reduce(args, (accum, item) => {
+      if (item.length > accum.length) {
+        return item;
+      }
+      return accum;
+    });
+
+    var index = 0;
+    var res = [];
+    _.each(longest, () => {
+      var current = [];
+      _.each(args, (item) => {
+        current.push(item[index]);
+      });
+      index++;
+      res.push(current);
+    });
+    return res;
+  };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   //
   // Hint: Use Array.isArray to check if something is an array
-  _.flatten = function (nestedArray, result) {};
+  _.flatten = (nestedArray, result) => {
+    var res = [];
+    _.each(nestedArray, (arr) => {
+      if (Array.isArray(arr)) {
+        res.push(..._.flatten(arr));
+      } else {
+        res.push(arr);
+      }
+    });
+    return res;
+  };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
-  _.intersection = function () {};
+
+  _.intersection = (first, ...args) => {
+    var sets = _.map(args, (arr) => {
+      var res = {};
+      _.each(arr, (element) => {
+        res[element] = 0;
+      });
+      return res;
+    });
+
+    return _.filter(first, (value) => {
+      return _.every(sets, (set) => {
+        return value in set;
+      });
+    });
+  };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
-  _.difference = function (array) {};
+  _.difference = (first, ...args) => {
+    var sets = _.map(args, (arr) => {
+      var res = {};
+      _.each(arr, (element) => {
+        res[element] = 0;
+      });
+      return res;
+    });
+
+    return _.filter(first, (value) => {
+      return _.every(sets, (set) => {
+        return !(value in set);
+      });
+    });
+  };
 
   // Returns a function, that, when invoked, will only be triggered at most once
   // during a given window of time.  See the Underbar readme for extra details
   // on this function.
   //
   // Note: This is difficult! It may take a while to implement.
-  _.throttle = function (func, wait) {};
+  _.throttle = (func, wait) => {
+    var lastInvoked = 0;
+    return (...args) => {
+      var time = Date.now();
+      if (time - lastInvoked >= wait) {
+        lastInvoked = time;
+        return func(...args);
+      }
+    };
+  };
 })();
